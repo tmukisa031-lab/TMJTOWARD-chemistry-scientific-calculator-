@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chemistry Scientific Calculator</title>
+<style>
+  body {
+    background: #121212;
+    font-family: 'Consolas', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    color: white;
+  }
+  .calculator {
+    width: 480px;
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  }
+  .screen {
+    background: #000;
+    color: #0f0;
+    height: 60px;
+    font-size: 1.3em;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+  }
+  .mode-buttons, .nav-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .button-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  button {
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    height: 50px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  button:hover {
+    background: #555;
+  }
+  sub { vertical-align: sub; font-size: 0.8em; }
+  sup { vertical-align: super; font-size: 0.8em; }
+</style>
+</head>
+<body>
+
+<div class="calculator">
+  <!-- Display -->
+  <div class="screen" id="display">0</div>
+
+  <!-- Mode buttons -->
+  <div class="mode-buttons">
+    <button onclick="setMode('normal')">Normal</button>
+    <button onclick="setMode('sub')">Subscript</button>
+    <button onclick="setMode('super')">Superscript</button>
+  </div>
+
+  <!-- Elements buttons grid (generated dynamically) -->
+  <div class="button-grid" id="elements-grid"></div>
+
+  <!-- Numbers & Symbols -->
+  <div class="button-grid">
+    <button onclick="inputNumber('1')">1</button>
+    <button onclick="inputNumber('2')">2</button>
+    <button onclick="inputNumber('3')">3</button>
+    <button onclick="inputNumber('4')">4</button>
+    <button onclick="inputNumber('5')">5</button>
+    <button onclick="inputNumber('6')">6</button>
+    <button onclick="inputNumber('7')">7</button>
+    <button onclick="inputNumber('8')">8</button>
+    <button onclick="inputNumber('9')">9</button>
+    <button onclick="inputNumber('0')">0</button>
+    <button onclick="inputSymbol('+')">+</button>
+    <button onclick="inputSymbol('-')">-</button>
+    <button onclick="inputSymbol('(')">(</button>
+    <button onclick="inputSymbol(')')">)</button>
+    <button onclick="inputSymbol('→')">→</button>
+    <button onclick="inputSymbol('⇌')">⇌</button>
+    <button onclick="calculate()">Balance</button>
+    <button onclick="clearDisplay()">C</button>
+    <button onclick="deleteChar()">DEL</button>
+  </div>
+
+  <!-- Navigation buttons -->
+  <div class="nav-container">
+    <button onclick="moveCursor('up')">▲</button>
+    <button onclick="moveCursor('left')">◀</button>
+    <button onclick="moveCursor('down')">▼</button>
+    <button onclick="moveCursor('right')">▶</button>
+  </div>
+</div>
+
+<script>
+// Full ELEMENTS array (subset shown, full array can be inserted)
+const ELEMENTS = [
+  {Z:1,s:"H",ve:1},{Z:6,s:"C",ve:4},{Z:7,s:"N",ve:5},{Z:8,s:"O",ve:6},
+  {Z:11,s:"Na",ve:1},{Z:17,s:"Cl",ve:7},{Z:20,s:"Ca",ve:2},{Z:26,s:"Fe",ve:8}
+];
+
+let mode = "normal";
+let display = document.getElementById("display");
+
+// Generate element buttons dynamically
+const elementsGrid = document.getElementById("elements-grid");
+ELEMENTS.forEach(el => {
+  const btn = document.createElement("button");
+  btn.textContent = el.s;
+  btn.onclick = () => inputElement(el.s);
+  elementsGrid.appendChild(btn);
+});
+
+function setMode(newMode) { mode = newMode; }
+
+function inputElement(el) {
+  if(display.innerHTML === "0") display.innerHTML = "";
+  if (mode === "sub") display.innerHTML += `<sub>${el}</sub>`;
+  else if (mode === "super") display.innerHTML += `<sup>${el}</sup>`;
+  else display.innerHTML += el;
+}
+
+function inputNumber(num) { inputElement(num); }
+function inputSymbol(sym) { display.innerHTML += sym; }
+function clearDisplay() { display.innerHTML = '0'; }
+function deleteChar() {
+  let content = display.innerHTML;
+  display.innerHTML = content.slice(0, -1) || '0';
+}
+function moveCursor(dir){ console.log("Move cursor:", dir); }
+
+// Chemistry equation balancing placeholder using valence electrons
+function calculate() {
+  let equation = display.textContent;
+  // Simple parsing: split reactants and products
+  let sides = equation.split(/→|⇌/);
+  if(sides.length !== 2){ alert("Invalid equation"); return; }
+  let reactants = sides[0].split('+').map(e=>e.trim());
+  let products = sides[1].split('+').map(e=>e.trim());
+
+  // Placeholder: count total valence electrons for each side
+  const countVE = (compounds)=>{
+    let totalVE=0;
+    compounds.forEach(comp=>{
+      ELEMENTS.forEach(el=>{
+        let regex = new RegExp(el.s,"g");
+        let matches = comp.match(regex);
+        if(matches) totalVE += matches.length*el.ve;
+      });
+    });
+    return totalVE;
+  }
+
+  let veReact = countVE(reactants);
+  let veProd = countVE(products);
+
+  alert(`Valence electrons:\nReactants: ${veReact}\nProducts: ${veProd}\nBalancing algorithm can use these numbers to adjust coefficients.`);
+}
+
+</script>
+</body>
+</html>
